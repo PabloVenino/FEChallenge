@@ -24,9 +24,9 @@ import type { Display, ToolResult } from "./artifact";
  * `{ rows, display }` — see src/agent/artifact.ts.
  */
 export function buildTools(ctx: AnalyticsCtx) {
-  const result = (rows: ToolResult["rows"], display: Display): ToolResult => ({
+  const result = (rows: ToolResult["rows"], display: Display, silent?: boolean): ToolResult => ({
     rows,
-    display,
+    display: silent ? { kind: "hidden" } : display,
   });
 
   return {
@@ -35,8 +35,11 @@ export function buildTools(ctx: AnalyticsCtx) {
     applicationCountByStage: tool({
       description:
         "Count applications grouped by pipeline stage (applied, screen, interview, offer, hired, rejected). Pass a jobId to scope to one job.",
-      inputSchema: z.object({ jobId: z.string().optional() }),
-      async execute({ jobId }) {
+      inputSchema: z.object({ 
+        jobId: z.string().optional(),
+        silent: z.boolean().optional().describe("Set to true to hide this tool call from the UI (useful for intermediate lookups)")
+      }),
+      async execute({ jobId, silent }) {
         try {
           const rows = await applicationCountByStage(ctx, { jobId });
           return result(rows, {
@@ -44,7 +47,7 @@ export function buildTools(ctx: AnalyticsCtx) {
             x: "stage",
             y: "count",
             title: "Applications by stage",
-          });
+          }, silent);
         } catch (e: any) {
           return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
         }
@@ -53,8 +56,10 @@ export function buildTools(ctx: AnalyticsCtx) {
 
     candidatesBySource: tool({
       description: "Count candidates by referral source.",
-      inputSchema: z.object({}),
-      async execute() {
+      inputSchema: z.object({
+        silent: z.boolean().optional().describe("Set to true to hide this tool call from the UI (useful for intermediate lookups)")
+      }),
+      async execute({ silent }) {
         try {
           const rows = await candidatesBySource(ctx);
           return result(rows, {
@@ -62,7 +67,7 @@ export function buildTools(ctx: AnalyticsCtx) {
             x: "source",
             y: "count",
             title: "Candidates by source",
-          });
+          }, silent);
         } catch (e: any) {
           return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
         }
@@ -71,14 +76,17 @@ export function buildTools(ctx: AnalyticsCtx) {
 
     jobBreakdown: tool({
       description: "List jobs with their title, department, location, and status. Pass a status (open, closed, draft) to filter.",
-      inputSchema: z.object({ status: z.enum(["open", "closed", "draft"]).optional() }),
-      async execute({ status }) {
+      inputSchema: z.object({ 
+        status: z.enum(["open", "closed", "draft"]).optional(),
+        silent: z.boolean().optional().describe("Set to true to hide this tool call from the UI (useful for intermediate lookups)")
+      }),
+      async execute({ status, silent }) {
         try {
           const rows = await jobBreakdown(ctx, { status });
           return result(rows, {
             kind: "table",
             columns: ["title", "department", "location", "status"],
-          });
+          }, silent);
         } catch (e: any) {
           return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
         }
@@ -89,15 +97,16 @@ export function buildTools(ctx: AnalyticsCtx) {
       description: "List candidates. Pass jobId or stage to filter candidates. Returns basic candidate info (with PII if role allows).",
       inputSchema: z.object({
         jobId: z.string().optional(),
-        stage: z.enum(["applied", "screen", "interview", "offer", "hired", "rejected"]).optional()
+        stage: z.enum(["applied", "screen", "interview", "offer", "hired", "rejected"]).optional(),
+        silent: z.boolean().optional().describe("Set to true to hide this tool call from the UI (useful for intermediate lookups)")
       }),
-      async execute({ jobId, stage }) {
+      async execute({ jobId, stage, silent }) {
         try {
           const rows = await candidateList(ctx, { jobId, stage });
           return result(rows, {
             kind: "table",
             columns: rows.length > 0 ? Object.keys(rows[0]) : [],
-          });
+          }, silent);
         } catch (e: any) {
           return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
         }
@@ -106,14 +115,17 @@ export function buildTools(ctx: AnalyticsCtx) {
 
     getCandidateDetail: tool({
       description: "Get full profile detail of a single candidate by candidateId.",
-      inputSchema: z.object({ candidateId: z.string() }),
-      async execute({ candidateId }) {
+      inputSchema: z.object({ 
+        candidateId: z.string(),
+        silent: z.boolean().optional().describe("Set to true to hide this tool call from the UI (useful for intermediate lookups)")
+      }),
+      async execute({ candidateId, silent }) {
         try {
           const rows = await candidateDetail(ctx, { candidateId });
           return result(rows, {
             kind: "table",
             columns: rows.length > 0 ? Object.keys(rows[0]) : [],
-          });
+          }, silent);
         } catch (e: any) {
           return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
         }

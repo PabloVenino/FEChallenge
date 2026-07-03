@@ -10,6 +10,7 @@ export type Row = Record<string, unknown>;
 export type Display =
   | { kind: "table"; columns: string[] }
   | { kind: "bar"; x: string; y: string; title: string }
-  | { kind: "line"; x: string; y: string; title: string };
+  | { kind: "line"; x: string; y: string; title: string }
+  | { kind: "hidden" };
 
 export type ToolResult = { rows: Row[]; display: Display };
