@@ -1,6 +1,7 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createOpenAI } from "@ai-sdk/openai";
 import { bedrock } from "@ai-sdk/amazon-bedrock";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import type { LanguageModel } from "ai";
 
 import { env } from "@/env";
@@ -61,6 +62,18 @@ export function getModel(): LanguageModel {
         baseURL,
       });
       return openai(env.OPENAI_MODEL);
+    }
+
+    case "gemini": {
+      if (!process.env.GEMINI_API_KEY) {
+        throw new Error(
+          "AI_PROVIDER=gemini but GEMINI_API_KEY is not set. Set it in .env.local or use AI_PROVIDER=mock.",
+        );
+      }
+      const google = createGoogleGenerativeAI({
+        apiKey: process.env.GEMINI_API_KEY,
+      });
+      return google(env.GEMINI_MODEL);
     }
 
     case "bedrock": {

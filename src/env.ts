@@ -4,7 +4,7 @@
  * with zero configuration.
  */
 
-export type AiProvider = "mock" | "anthropic" | "openai" | "bedrock";
+export type AiProvider = "mock" | "anthropic" | "openai" | "bedrock" | "gemini";
 
 export const env = {
   /** Which model provider the agent uses. Defaults to the offline mock. */
@@ -16,6 +16,7 @@ export const env = {
   BEDROCK_MODEL:
     process.env.BEDROCK_MODEL ??
     "anthropic.claude-3-5-sonnet-20240620-v1:0",
+  GEMINI_MODEL: process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
 
   /**
    * Optional gateway base URL. When set, the anthropic/openai providers route
