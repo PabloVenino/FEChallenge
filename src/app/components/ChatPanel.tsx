@@ -3,6 +3,7 @@ import { ROLES } from "@/db/permissions";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
+import { useMemo } from "react";
 
 type Workspace = { id: string; slug: string; name: string };
 
@@ -27,7 +28,11 @@ export function ChatPanel({
   busy,
   onSend,
 }: Props) {
-  const workspaceName = workspaces?.find((w) => w.slug === activeWorkspace)?.name ?? activeWorkspace;
+  const workspaceName = useMemo(
+    () => workspaces?.find((w) => w.slug === activeWorkspace)?.name ?? activeWorkspace, [workspaces, activeWorkspace]
+  );
+
+  const userLabel = useMemo(() => `You (${workspaceName} - ${role})`, [workspaceName, role]);
 
   return (
     <section className="flex min-h-0 flex-col rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
@@ -38,7 +43,7 @@ export function ChatPanel({
         role={role}
         onRoleChange={onRoleChange}
       />
-      <MessageList messages={messages} busy={busy} userLabel={`You (${workspaceName} - ${role})`} />
+      <MessageList messages={messages} busy={busy} userLabel={userLabel} />
       <ChatInput busy={busy} onSend={onSend} />
     </section>
   );

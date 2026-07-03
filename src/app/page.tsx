@@ -3,11 +3,11 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import { getActiveRole, getActiveWorkspace, useTenant, useTRPC } from "./providers";
 import { ChatPanel } from "./components/ChatPanel";
-import { PipelineSidebar } from "./components/PipelineSidebar";
+import PipelineSidebar from "./components/PipelineSidebar";
 
 export default function Page() {
   const { activeWorkspace, setActiveWorkspace, role, setRole } = useTenant();
@@ -39,6 +39,13 @@ export default function Page() {
 
   const busy = status === "streaming" || status === "submitted";
 
+  const handleSend = useCallback(
+    (text: string) => {
+      sendMessage({ text });
+    },
+    [sendMessage]
+  );
+
   return (
     <main className="mx-auto grid h-screen max-w-[1400px] grid-cols-1 md:grid-cols-[1fr_360px] gap-6 p-4 md:p-6 bg-zinc-50/50">
       <ChatPanel
@@ -49,7 +56,7 @@ export default function Page() {
         onRoleChange={setRole}
         messages={messages}
         busy={busy}
-        onSend={(text) => sendMessage({ text })}
+        onSend={handleSend}
       />
       <PipelineSidebar data={pipeline.data} isLoading={pipeline.isLoading} />
     </main>

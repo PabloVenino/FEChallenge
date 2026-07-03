@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LabelList } from "recharts";
 import { EmptyPipelineIcon } from "./Icons";
+import { memo } from "react";
 
 type PipelineRow = { stage: string; count: number };
 
@@ -8,7 +9,7 @@ type Props = {
   isLoading: boolean;
 };
 
-export function PipelineSidebar({ data, isLoading }: Props) {
+function PipelineSidebar({ data, isLoading }: Props) {
   const total = data?.reduce((acc, curr) => acc + curr.count, 0) ?? 0;
 
   return (
@@ -66,3 +67,5 @@ function PipelineEmpty() {
     </div>
   );
 }
+
+export default memo(PipelineSidebar);
