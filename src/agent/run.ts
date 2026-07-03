@@ -18,7 +18,7 @@ import { getModel, SYSTEM_PROMPT } from "./provider";
  *   - the chat route calls `.toUIMessageStreamResponse()`
  *   - evals/tests `await result.steps` / `.toolCalls` / `.text`
  *
- * The agent loops (orient → query → answer) up to 6 steps via `stopWhen`.
+ * The agent loops (orient → query → answer) up to 8 steps via `stopWhen`.
  */
 export async function streamCopilot({
   workspaceId,
@@ -34,14 +34,11 @@ export async function streamCopilot({
 }) {
   await ensureSchema();
 
-  // This is a minimal loop: one model, the tools, capped at 6 steps. Owning the
-  // loop is part of the exercise — consider tool-error handling, your stop
-  // strategy, and whether the agent should emit a typed structured answer.
   return streamText({
     model,
     system: SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
     tools: buildTools({ workspaceId, role }),
-    stopWhen: stepCountIs(6),
+    stopWhen: stepCountIs(8),
   });
 }

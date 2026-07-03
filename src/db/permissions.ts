@@ -20,19 +20,23 @@ export function isRole(value: string): value is Role {
 }
 
 /** Default role when none is supplied on the request. */
-export const DEFAULT_ROLE: Role = "admin";
+export const DEFAULT_ROLE: Role = "recruiter";
 
 /** Columns considered PII, keyed by table. Reading these requires a non-analyst role. */
 export const PII_COLUMNS: Record<string, readonly string[]> = {
   candidates: ["name", "email", "phone"],
 };
 
-/**
- * Whether `role` may read `table.column`.
- *
- * TODO(candidate): implement real enforcement. Right now this is permissive —
- * every role can read everything, including PII. That's the gap to close.
- */
-export function canReadColumn(_role: Role, _table: string, _column: string): boolean {
-  return true;
+const CAN_SEE_PII: Record<Role, boolean> = {
+  admin: true,
+  recruiter: true,
+  analyst: false,
+};
+
+/** Checks if a role can read a given PII_COLUMNS */
+export function canReadColumn(role: Role, table: string, column: string): boolean {
+  const isPii = PII_COLUMNS[table]?.includes(column);
+  if (isPii) return CAN_SEE_PII[role];
+  return true; // non-PII columns readable by everyone
 }
+

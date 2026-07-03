@@ -1,7 +1,14 @@
 import { tool } from "ai";
 import { z } from "zod";
 
-import { applicationCountByStage, type AnalyticsCtx } from "@/db/analytics";
+import { 
+  applicationCountByStage,
+  candidatesBySource,
+  jobBreakdown,
+  candidateList,
+  candidateDetail,
+  type AnalyticsCtx 
+} from "@/db/analytics";
 import type { Display, ToolResult } from "./artifact";
 
 /**
@@ -30,18 +37,88 @@ export function buildTools(ctx: AnalyticsCtx) {
         "Count applications grouped by pipeline stage (applied, screen, interview, offer, hired, rejected). Pass a jobId to scope to one job.",
       inputSchema: z.object({ jobId: z.string().optional() }),
       async execute({ jobId }) {
-        const rows = await applicationCountByStage(ctx, { jobId });
-        return result(rows, {
-          kind: "bar",
-          x: "stage",
-          y: "count",
-          title: "Applications by stage",
-        });
+        try {
+          const rows = await applicationCountByStage(ctx, { jobId });
+          return result(rows, {
+            kind: "bar",
+            x: "stage",
+            y: "count",
+            title: "Applications by stage",
+          });
+        } catch (e: any) {
+          return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
+        }
       },
     }),
 
-    // TODO(candidate): design and add the tools that make this a genuinely
-    // useful analytics copilot for this workspace's recruiting data.
+    candidatesBySource: tool({
+      description: "Count candidates by referral source.",
+      inputSchema: z.object({}),
+      async execute() {
+        try {
+          const rows = await candidatesBySource(ctx);
+          return result(rows, {
+            kind: "bar",
+            x: "source",
+            y: "count",
+            title: "Candidates by source",
+          });
+        } catch (e: any) {
+          return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
+        }
+      },
+    }),
+
+    jobBreakdown: tool({
+      description: "List jobs with their title, department, location, and status. Pass a status (open, closed, draft) to filter.",
+      inputSchema: z.object({ status: z.enum(["open", "closed", "draft"]).optional() }),
+      async execute({ status }) {
+        try {
+          const rows = await jobBreakdown(ctx, { status });
+          return result(rows, {
+            kind: "table",
+            columns: ["title", "department", "location", "status"],
+          });
+        } catch (e: any) {
+          return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
+        }
+      },
+    }),
+
+    listCandidates: tool({
+      description: "List candidates. Pass jobId or stage to filter candidates. Returns basic candidate info (with PII if role allows).",
+      inputSchema: z.object({
+        jobId: z.string().optional(),
+        stage: z.enum(["applied", "screen", "interview", "offer", "hired", "rejected"]).optional()
+      }),
+      async execute({ jobId, stage }) {
+        try {
+          const rows = await candidateList(ctx, { jobId, stage });
+          return result(rows, {
+            kind: "table",
+            columns: rows.length > 0 ? Object.keys(rows[0]) : [],
+          });
+        } catch (e: any) {
+          return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
+        }
+      },
+    }),
+
+    getCandidateDetail: tool({
+      description: "Get full profile detail of a single candidate by candidateId.",
+      inputSchema: z.object({ candidateId: z.string() }),
+      async execute({ candidateId }) {
+        try {
+          const rows = await candidateDetail(ctx, { candidateId });
+          return result(rows, {
+            kind: "table",
+            columns: rows.length > 0 ? Object.keys(rows[0]) : [],
+          });
+        } catch (e: any) {
+          return { rows: [], display: { kind: "table", columns: [] } as Display, error: e.message } as unknown as ToolResult;
+        }
+      }
+    }),
   };
 }
 
