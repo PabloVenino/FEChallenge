@@ -3,6 +3,7 @@ import { ROLES } from "@/db/permissions";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
+import { SamplePhrases } from "./SamplePhrases";
 import { useMemo } from "react";
 
 type Workspace = { id: string; slug: string; name: string };
@@ -44,6 +45,7 @@ export function ChatPanel({
         onRoleChange={onRoleChange}
       />
       <MessageList messages={messages} busy={busy} userLabel={userLabel} />
+      <SamplePhrases onSelect={(phrase) => onSend(phrase)} />
       <ChatInput busy={busy} onSend={onSend} />
     </section>
   );
