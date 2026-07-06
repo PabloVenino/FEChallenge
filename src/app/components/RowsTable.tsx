@@ -4,6 +4,25 @@ type Props = {
   output?: { rows?: Row[]; display?: Display };
 };
 
+function formatCellValue(val: unknown): string {
+  if (typeof val === "string") {
+    const isIso = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(val);
+    const isDateOnly = /^\d{4}-\d{2}-\d{2}$/.test(val);
+    if (isIso || isDateOnly) {
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        return new Intl.DateTimeFormat("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          timeZone: "UTC",
+        }).format(d);
+      }
+    }
+  }
+  return String(val ?? "");
+}
+
 export function RowsTable({ output }: Props) {
   const rows = output?.rows ?? [];
   if (rows.length === 0) return <p className="mt-1 text-zinc-500 text-[13px]">No rows.</p>;
@@ -28,7 +47,7 @@ export function RowsTable({ output }: Props) {
             <tr key={i} className="text-zinc-700 hover:bg-zinc-50 transition-colors">
               {columns.map((c) => (
                 <td key={c} className="border-b border-zinc-100 px-4 py-2.5">
-                  {String(row[c] ?? "")}
+                  {formatCellValue(row[c])}
                 </td>
               ))}
             </tr>

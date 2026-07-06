@@ -25,7 +25,7 @@ import type { Display, ToolResult } from "./artifact";
  */
 export function buildTools(ctx: AnalyticsCtx) {
   const result = (rows: ToolResult["rows"], display: Display, silent?: boolean): ToolResult => ({
-    rows,
+    rows: JSON.parse(JSON.stringify(rows)),
     display: silent ? { kind: "hidden" } : display,
   });
 
