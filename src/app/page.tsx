@@ -3,11 +3,12 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { getActiveRole, getActiveWorkspace, useTenant, useTRPC } from "./providers";
 import { ChatPanel } from "./components/ChatPanel";
 import PipelineSidebar from "./components/PipelineSidebar";
+import { Toast } from "./components/Toast";
 
 export default function Page() {
   const { activeWorkspace, setActiveWorkspace, role, setRole } = useTenant();
@@ -15,6 +16,14 @@ export default function Page() {
 
   const workspaces = useQuery(trpc.workspaces.list.queryOptions());
   const pipeline = useQuery(trpc.analytics.applicationsByStage.queryOptions({}));
+
+  const [toastError, setToastError] = useState<Error | null>(null);
+
+  const pipelineError = pipeline.error as Error | null;
+  useMemo(() => {
+    if (pipelineError) setToastError(pipelineError);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pipelineError?.message]);
 
   // A fresh transport per active workspace/role so the `x-workspace` + `x-role`
   // headers follow the switchers. Keying useChat on them also resets the
@@ -32,7 +41,7 @@ export default function Page() {
     [activeWorkspace, role],
   );
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error: chatError, clearError } = useChat({
     id: `${activeWorkspace}:${role}`,
     transport,
   });
@@ -41,9 +50,10 @@ export default function Page() {
 
   const handleSend = useCallback(
     (text: string) => {
+      clearError?.();
       sendMessage({ text });
     },
-    [sendMessage]
+    [sendMessage, clearError]
   );
 
   return (
@@ -57,8 +67,14 @@ export default function Page() {
         messages={messages}
         busy={busy}
         onSend={handleSend}
+        error={chatError}
+        onDismissError={clearError}
       />
       <PipelineSidebar data={pipeline.data} isLoading={pipeline.isLoading} />
+
+      {/* Analytics (tRPC) errors surface here as a toast */}
+      <Toast error={toastError} onDismiss={() => setToastError(null)} />
     </main>
   );
 }
+

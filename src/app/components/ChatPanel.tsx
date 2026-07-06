@@ -4,6 +4,7 @@ import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { ChatInput } from "./ChatInput";
 import { SamplePhrases } from "./SamplePhrases";
+import { ErrorBanner } from "./ErrorBanner";
 import { useMemo } from "react";
 
 type Workspace = { id: string; slug: string; name: string };
@@ -17,6 +18,10 @@ type Props = {
   messages: UIMessage[];
   busy: boolean;
   onSend: (text: string) => void;
+  /** Error surfaced by useChat() — shown as an inline banner above the input. */
+  error?: Error | null;
+  /** Called when the user dismisses the error banner. */
+  onDismissError?: () => void;
 };
 
 export function ChatPanel({
@@ -28,6 +33,8 @@ export function ChatPanel({
   messages,
   busy,
   onSend,
+  error,
+  onDismissError,
 }: Props) {
   const workspaceName = useMemo(
     () => workspaces?.find((w) => w.slug === activeWorkspace)?.name ?? activeWorkspace, [workspaces, activeWorkspace]
@@ -45,8 +52,11 @@ export function ChatPanel({
         onRoleChange={onRoleChange}
       />
       <MessageList messages={messages} busy={busy} userLabel={userLabel} />
+      {error && onDismissError && (
+        <ErrorBanner error={error} onDismiss={onDismissError} />
+      )}
       <SamplePhrases onSelect={(phrase) => onSend(phrase)} />
       <ChatInput busy={busy} onSend={onSend} />
     </section>
   );
-}
+}

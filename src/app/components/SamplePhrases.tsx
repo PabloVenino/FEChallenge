@@ -4,25 +4,16 @@ import { useMemo, useState } from "react";
 
 const PHRASES: string[] = [
   "How does my pipeline look by stage?",
-  "Show candidates by source this month",
-  "Which jobs have the most applicants?",
-  "List candidates in the final interview stage",
-  "What's our offer acceptance rate?",
-  "Show time-to-hire by job",
-  "Which sources produce the best hires?",
-  "How many candidates were rejected last week?",
-  "Show open jobs by department",
-  "List candidates awaiting feedback",
-  "What's our current headcount by role?",
-  "Show application volume trend this quarter",
-  "Which recruiters have the most active candidates?",
-  "List candidates with upcoming interviews",
-  "Show dropout rate by stage",
-  "What jobs have been open longest?",
-  "Show diversity breakdown of applicants",
-  "List candidates flagged for follow-up",
-  "What's the average time in each stage?",
-  "Show hires by month this year",
+  "Show candidates by source",
+  "List candidates in the offer stage",
+  "Give me a breakdown of all jobs",
+  "Show application volume trend",
+  "List candidates in the Phone Screen stage",
+  "How many applications are in the applied stage?",
+  "Where are our candidates coming from?",
+  "List all rejected candidates",
+  "Show open jobs",
+  "What is the application volume over time?"
 ];
 
 const PAGE_SIZE = 3;
